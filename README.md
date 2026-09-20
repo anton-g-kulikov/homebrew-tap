@@ -1,16 +1,16 @@
-# homebrew-backspacer
+# homebrew-tap
 
 Homebrew tap for [Backspacer](https://backspacer.dev/), the Mac app that finds and
 removes the caches and build leftovers eating a developer's disk.
 
 ```bash
-brew install --cask anton-g-kulikov/backspacer/backspacer
+brew install --cask anton-g-kulikov/tap/backspacer
 ```
 
 or, in two steps:
 
 ```bash
-brew tap anton-g-kulikov/backspacer
+brew tap anton-g-kulikov/tap
 brew install --cask backspacer
 ```
 

@@ -37,6 +37,7 @@ jobs:
         if: steps.latest.outputs.bump == 'true'
         run: |
           brew tap-new --no-git anton-g-kulikov/backspacer-ci >/dev/null
+          mkdir -p "$(brew --repository anton-g-kulikov/backspacer-ci)/Casks"
           cp Casks/backspacer.rb "$(brew --repository anton-g-kulikov/backspacer-ci)/Casks/"
           brew style --cask anton-g-kulikov/backspacer-ci/backspacer
           brew audit --cask --online --strict anton-g-kulikov/backspacer-ci/backspacer
