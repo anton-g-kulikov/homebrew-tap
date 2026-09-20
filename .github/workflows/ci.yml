@@ -15,6 +15,8 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Tap this checkout and audit the cask
+        env:
+          HOMEBREW_GITHUB_API_TOKEN: ${{ github.token }}
         run: |
           brew tap-new --no-git anton-g-kulikov/backspacer-ci >/dev/null
           mkdir -p "$(brew --repository anton-g-kulikov/backspacer-ci)/Casks"
