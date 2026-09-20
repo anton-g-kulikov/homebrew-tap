@@ -1,6 +1,6 @@
 cask "backspacer" do
-  version "0.9.1"
-  sha256 "5d5ce63113862f893ffae0eed7816e65a0a8e7ca783447efdef307434fbc8ff1"
+  version "0.9.2"
+  sha256 "389523eb372013d9cad153ddd1716716861787168a6fe1aef7518575b48a044a"
 
   url "https://github.com/anton-g-kulikov/backspacer/releases/download/v#{version}/Backspacer-#{version}.dmg"
   name "Backspacer"
