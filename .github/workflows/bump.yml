@@ -1,0 +1,49 @@
+name: Bump to the latest release
+
+# No secrets needed: the app's releases are public, and this repository's own token may
+# commit here. Runs every six hours and on demand (gh workflow run bump.yml).
+on:
+  schedule:
+    - cron: '17 */6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  bump:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Compare the cask with the latest release
+        id: latest
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="$(gh release view --repo anton-g-kulikov/backspacer --json tagName -q .tagName)"
+          NEW="${TAG#v}"
+          CUR="$(sed -n 's/^  version "\(.*\)"$/\1/p' Casks/backspacer.rb)"
+          echo "current=$CUR new=$NEW"
+          if [ "$NEW" = "$CUR" ]; then echo "up to date"; echo "bump=false" >> "$GITHUB_OUTPUT"; exit 0; fi
+          URL="https://github.com/anton-g-kulikov/backspacer/releases/download/$TAG/Backspacer-$NEW.dmg"
+          curl -sSL -o "$RUNNER_TEMP/Backspacer.dmg" "$URL"
+          SHA="$(shasum -a 256 "$RUNNER_TEMP/Backspacer.dmg" | cut -d' ' -f1)"
+          # The release notes carry the SHA-256 the workflow computed at publish time; they must agree.
+          NOTES_SHA="$(gh release view --repo anton-g-kulikov/backspacer "$TAG" --json body -q .body | grep -o '`[0-9a-f]\{64\}`' | tr -d '`' | head -1)"
+          [ -z "$NOTES_SHA" ] || [ "$NOTES_SHA" = "$SHA" ] || { echo "SHA-256 of the DMG ($SHA) differs from the release notes ($NOTES_SHA) — not bumping"; exit 1; }
+          sed -i '' -e "s/^  version \".*\"$/  version \"$NEW\"/" -e "s/^  sha256 \".*\"$/  sha256 \"$SHA\"/" Casks/backspacer.rb
+          echo "bump=true" >> "$GITHUB_OUTPUT"; echo "new=$NEW" >> "$GITHUB_OUTPUT"
+      - name: Audit the bumped cask
+        if: steps.latest.outputs.bump == 'true'
+        run: |
+          brew tap-new --no-git anton-g-kulikov/backspacer-ci >/dev/null
+          cp Casks/backspacer.rb "$(brew --repository anton-g-kulikov/backspacer-ci)/Casks/"
+          brew style --cask anton-g-kulikov/backspacer-ci/backspacer
+          brew audit --cask --online --strict anton-g-kulikov/backspacer-ci/backspacer
+      - name: Commit
+        if: steps.latest.outputs.bump == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "backspacer ${{ steps.latest.outputs.new }}"
+          git push

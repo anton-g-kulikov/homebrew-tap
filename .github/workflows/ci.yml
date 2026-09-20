@@ -1,0 +1,22 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: brew audit + style
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Tap this checkout and audit the cask
+        run: |
+          brew tap-new --no-git anton-g-kulikov/backspacer-ci >/dev/null
+          cp Casks/backspacer.rb "$(brew --repository anton-g-kulikov/backspacer-ci)/Casks/"
+          brew style --cask anton-g-kulikov/backspacer-ci/backspacer
+          brew audit --cask --online --strict anton-g-kulikov/backspacer-ci/backspacer
